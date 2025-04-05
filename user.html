@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Магазин спортивного питания</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>Магазин спортивного питания</h1>
+            
+            <!-- Навигация пользователя -->
+            <nav id="user-nav" class="nav-menu">
+                <div class="user-welcome" id="user-welcome">
+                    Здравствуйте, <span id="current-username">Гость</span>!
+                </div>
+                <ul>
+                    <li><a href="#" data-page="catalog" class="active">Каталог</a></li>
+                    <li><a href="#" data-page="cart">Корзина <span id="cart-count">(0)</span></a></li>
+                    <li><a href="#" data-page="my-orders">Мои заказы</a></li>
+                    <!-- Ссылка на admin.html будет видна только админам через JS -->
+                    <li id="admin-link" style="display: none;"><a href="index.html">Режим администратора</a></li>
+                    <li><a href="#" id="user-logout-btn" class="logout-btn">Выход</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <!-- Секции пользователя -->
+        <main id="user-sections">
+            <section id="catalog" class="page active">
+                <h2>Каталог товаров</h2>
+                <div class="catalog-grid" id="catalog-container">
+                    <!-- Products will be loaded here -->
+                </div>
+            </section>
+            
+            <section id="product-detail" class="page">
+                <div class="product-container" id="product-detail-container">
+                    <!-- Product details will be loaded here -->
+                </div>
+            </section>
+            
+            <section id="cart" class="page">
+                <h2>Корзина</h2>
+                <div id="cart-container">
+                    <div id="cart-items">
+                        <!-- Cart items will be loaded here -->
+                    </div>
+                    <div id="cart-summary">
+                        <div class="cart-total">
+                            <h3>Итого: <span id="cart-total-price">0</span> руб.</h3>
+                        </div>
+                        <button id="checkout-btn" class="btn primary">Оформить заказ</button>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="checkout" class="page">
+                <h2>Оформление заказа</h2>
+                <form id="checkout-form">
+                    <div class="form-group">
+                        <h3>Данные покупателя</h3>
+                        <label for="checkout-name">Ваше имя:</label>
+                        <input type="text" id="checkout-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="checkout-phone">Телефон:</label>
+                        <input type="tel" id="checkout-phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="checkout-email">Email:</label>
+                        <input type="email" id="checkout-email" required>
+                    </div>
+                    
+                    <div class="order-summary">
+                        <h3>Состав заказа:</h3>
+                        <div id="order-items-summary">
+                            <!-- Order items summary will be loaded here -->
+                        </div>
+                        <div class="order-total">
+                            <h3>Итого: <span id="order-total-price">0</span> руб.</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary">Подтвердить заказ</button>
+                        <button type="button" id="back-to-cart" class="btn">Вернуться в корзину</button>
+                    </div>
+                </form>
+            </section>
+            
+            <section id="order-confirmation" class="page">
+                <h2>Заказ оформлен</h2>
+                <div class="confirmation-message">
+                    <p>Спасибо за ваш заказ! Номер вашего заказа: <span id="confirmation-order-id"></span></p>
+                    <p>Наш менеджер свяжется с вами в ближайшее время для подтверждения.</p>
+                </div>
+                <button id="back-to-catalog" class="btn primary">Вернуться в каталог</button>
+            </section>
+
+            <!-- Добавляем новую секцию для заказов пользователя -->
+            <section id="my-orders" class="page">
+                <h2>Мои заказы</h2>
+                <div class="my-orders-container">
+                    <div class="section-header">
+                        <h3>История заказов</h3>
+                        <button id="refresh-orders-btn" class="refresh-btn">
+                            <i class="fas fa-sync-alt"></i> Обновить
+                        </button>
+                    </div>
+                    <div id="user-orders-container">
+                        <!-- User orders will be loaded here -->
+                        <p class="loading-message">Загрузка заказов...</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/app-user.js"></script>
+    
+    <!-- Show admin link if user is admin -->
+    <script type="module">
+        import { isAdmin } from './js/auth.js';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            if (isAdmin()) {
+                const adminLink = document.getElementById('admin-link');
+                if (adminLink) {
+                    adminLink.style.display = 'block';
+                }
+            }
+        });
+    </script>
+</body>
+</html> 
