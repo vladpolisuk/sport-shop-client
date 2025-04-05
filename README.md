@@ -15,16 +15,7 @@
 
 - HTML5
 - CSS3
-- JavaScript (vanilla)
-
-### Серверная часть (уже реализована)
-
-- Java
-- Spring Boot
-- Spring Web
-- Spring Data JPA
-- Spring Security (Basic Authentication)
-- PostgreSQL
+- JavaScript
 
 ## Запуск приложения
 
