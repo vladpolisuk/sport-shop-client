@@ -3,7 +3,7 @@
  */
 
 // API configuration
-export const API_URL = 'http://localhost:8080';
+export const API_URL = 'https://wrong-alyssa-vladpolisuk-fff9e698.koyeb.app';
 
 // Application settings
 export const APP_NAME = 'Sport Shop';
