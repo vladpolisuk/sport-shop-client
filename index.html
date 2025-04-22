@@ -17,17 +17,24 @@
             <h1>Панель управления</h1>
             
             <!-- Навигация администратора -->
-            <nav id="admin-nav" class="nav-menu">
-                <div class="user-welcome" id="user-welcome">
-                    Здравствуйте, <span id="current-username">Администратор</span>!
+            <div class="nav-container">
+                <div class="hamburger-menu" id="hamburger-menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
                 </div>
-                <ul>
-                    <li><a href="#" data-page="products" class="active">Товары</a></li>
-                    <li><a href="#" data-page="customers">Клиенты</a></li>
-                    <li><a href="#" data-page="orders">Заказы</a></li>
-                    <li><a href="#" id="logout-btn" class="logout-btn">Выход</a></li>
-                </ul>
-            </nav>
+                <nav id="admin-nav" class="nav-menu">
+                    <div class="user-welcome" id="user-welcome">
+                        Здравствуйте, <span id="current-username">Администратор</span>!
+                    </div>
+                    <ul>
+                        <li><a href="#" data-page="products" class="active">Товары</a></li>
+                        <li><a href="#" data-page="customers">Клиенты</a></li>
+                        <li><a href="#" data-page="orders">Заказы</a></li>
+                        <li><a href="#" id="logout-btn" class="logout-btn">Выход</a></li>
+                    </ul>
+                </nav>
+            </div>
         </header>
 
         <!-- Секции администратора -->
@@ -208,11 +215,107 @@
                         </div>
                         <button type="button" class="btn" id="add-order-item">Добавить товар</button>
                     </div>
+                    
+                    <!-- Payment Method Section -->
+                    <div id="payment-method-group" class="form-group">
+                        <h3>Способ оплаты</h3>
+                        <div id="payment-methods-container">
+                            <!-- Payment methods will be loaded here -->
+                            <p class="loading-message">Загрузка способов оплаты...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Delivery Method Section -->
+                    <div id="delivery-method-group" class="form-group">
+                        <h3>Способ доставки</h3>
+                        <div id="delivery-methods-container">
+                            <!-- Delivery methods will be loaded here -->
+                            <p class="loading-message">Загрузка способов доставки...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Delivery Address -->
+                    <div id="delivery-address-group" class="form-group">
+                        <label for="delivery-address">Адрес доставки:</label>
+                        <input type="text" id="delivery-address" placeholder="Введите полный адрес доставки">
+                    </div>
+                    
+                    <!-- Delivery Cost and Info -->
+                    <div id="delivery-info" class="order-info-summary" style="display: none;">
+                        <div class="info-row">
+                            <span>Стоимость доставки:</span>
+                            <span id="delivery-cost">0.00 ₽</span>
+                        </div>
+                        <div class="info-row">
+                            <span>Приблизительная дата доставки:</span>
+                            <span id="estimated-delivery-date">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span>Итоговая сумма:</span>
+                            <span id="total-price">0.00 ₽</span>
+                        </div>
+                    </div>
+                    
                     <div class="form-actions">
                         <button type="submit" class="btn primary" id="save-order">Сохранить</button>
                         <button type="button" class="btn" id="cancel-order">Отмена</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div id="order-details-modal" class="modal">
+        <div class="modal-content order-modal-content">
+            <div class="modal-header">
+                <h2>Детали заказа #<span id="order-details-id"></span></h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="order-details-container">
+                    <!-- Order header info -->
+                    <div class="order-details-header">
+                        <div class="order-details-info">
+                            <p><strong>Дата создания:</strong> <span id="order-details-date"></span></p>
+                            <p><strong>Статус заказа:</strong> <span id="order-details-status"></span></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Customer info -->
+                    <div class="customer-info">
+                        <h3>Информация о клиенте</h3>
+                        <div id="order-details-customer">
+                            <!-- Customer details will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Order items -->
+                    <div class="order-details-section">
+                        <h3>Товары в заказе</h3>
+                        <div class="order-details-items-container">
+                            <div class="order-details-items-header">
+                                <span class="item-name">Наименование</span>
+                                <span class="item-quantity">Количество</span>
+                                <span class="item-price">Цена</span>
+                                <span class="item-total">Сумма</span>
+                            </div>
+                            <div id="order-details-items">
+                                <!-- Order items will be loaded here -->
+                            </div>
+                            <div class="order-details-total">
+                                <span>Итого:</span>
+                                <span id="order-details-total">0.00 руб.</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment and delivery info -->
+                    <div id="order-details-payment-delivery" class="order-details-section">
+                        <!-- Payment and delivery details will be loaded here -->
+                    </div>
+                    
+                </div>
             </div>
         </div>
     </div>

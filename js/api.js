@@ -225,6 +225,31 @@ export async function fetchCustomerById(id) {
 }
 
 /**
+ * Check if customer exists by email
+ * @param {string} email - Customer email
+ * @returns {Promise<Object>} - Customer data if found, or throws error if not found/other issue
+ */
+export async function checkCustomerByEmail(email) {
+    try {
+        const params = new URLSearchParams();
+        params.append('email', email);
+        
+        const response = await fetch(
+            `${API_URL}/customers/check?${params.toString()}`,
+            withAuth() // Include auth for potential user linking on backend
+        );
+        
+        // handleResponse will throw for 404 Not Found, which is okay here.
+        // We can catch it specifically in the calling function.
+        return handleResponse(response);
+    } catch (error) {
+        console.error(`Error checking customer by email ${email}:`, error);
+        // Re-throw the error to be handled by the caller
+        throw error;
+    }
+}
+
+/**
  * Create a customer
  * @param {Object} customerData - Customer data
  * @returns {Promise<Object>} - Created customer
@@ -460,6 +485,224 @@ export async function fetchUserOrders(options = {}) {
         return handleResponse(response);
     } catch (error) {
         console.error('Error fetching user orders:', error);
+        throw error;
+    }
+}
+
+/**
+ * Fetch available payment methods
+ * @returns {Promise<Array>} - Payment methods array
+ */
+export async function fetchPaymentMethods() {
+    try {
+        const response = await fetch(
+            `${API_URL}/payments/methods`,
+            withAuth()
+        );
+        
+        return handleResponse(response);
+    } catch (error) {
+        console.error('Error fetching payment methods:', error);
+        throw error;
+    }
+}
+
+/**
+ * Process payment for an order
+ * @param {Object} paymentData - Payment data (orderId, paymentMethod, amount)
+ * @returns {Promise<Object>} - Payment process result
+ */
+export async function processPayment(paymentData) {
+    try {
+        const response = await fetch(
+            `${API_URL}/payments/process`,
+            {
+                ...withAuth(),
+                method: 'POST',
+                headers: {
+                    ...withAuth().headers,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(paymentData)
+            }
+        );
+        
+        return handleResponse(response);
+    } catch (error) {
+        console.error('Error processing payment:', error);
+        throw error;
+    }
+}
+
+/**
+ * Calculate delivery cost
+ * @param {string} method - Delivery method
+ * @param {number} distance - Distance in km
+ * @param {number} weight - Weight in kg
+ * @returns {Promise<number>} - Delivery cost
+ */
+export async function calculateDeliveryCost(method, distance, weight) {
+    try {
+        const params = new URLSearchParams();
+        params.append('method', method);
+        params.append('distance', distance);
+        params.append('weight', weight);
+        
+        const response = await fetch(
+            `${API_URL}/delivery/cost?${params.toString()}`,
+            withAuth()
+        );
+        
+        return handleResponse(response);
+    } catch (error) {
+        console.error('Error calculating delivery cost:', error);
+        throw error;
+    }
+}
+
+/**
+ * Calculate delivery time
+ * @param {string} method - Delivery method
+ * @param {number} distance - Distance in km
+ * @returns {Promise<number>} - Delivery time in days
+ */
+export async function calculateDeliveryTime(method, distance) {
+    try {
+        const params = new URLSearchParams();
+        params.append('method', method);
+        params.append('distance', distance);
+        
+        const response = await fetch(
+            `${API_URL}/delivery/time?${params.toString()}`,
+            withAuth()
+        );
+        
+        return handleResponse(response);
+    } catch (error) {
+        console.error('Error calculating delivery time:', error);
+        throw error;
+    }
+}
+
+/**
+ * Check if delivery is available
+ * @param {string} method - Delivery method
+ * @param {number} distance - Distance in km
+ * @param {number} weight - Weight in kg
+ * @returns {Promise<boolean>} - Whether delivery is available
+ */
+export async function isDeliveryAvailable(method, distance, weight) {
+    try {
+        const params = new URLSearchParams();
+        params.append('method', method);
+        params.append('distance', distance);
+        params.append('weight', weight);
+        
+        const response = await fetch(
+            `${API_URL}/delivery/available?${params.toString()}`,
+            withAuth()
+        );
+        
+        return handleResponse(response);
+    } catch (error) {
+        console.error('Error checking delivery availability:', error);
+        throw error;
+    }
+}
+
+/**
+ * Fetch available delivery methods
+ * @returns {Promise<Array>} - Delivery methods array
+ */
+export async function fetchDeliveryMethods() {
+    try {
+        const response = await fetch(
+            `${API_URL}/delivery/methods`,
+            withAuth()
+        );
+        
+        return handleResponse(response);
+    } catch (error) {
+        console.error('Error fetching delivery methods:', error);
+        throw error;
+    }
+}
+
+/**
+ * Calculate delivery cost and time
+ * @param {Object} deliveryData - Delivery calculation data
+ * @returns {Promise<Object>} - Delivery calculation result
+ */
+export async function calculateDelivery(deliveryData) {
+    try {
+        const response = await fetch(
+            `${API_URL}/delivery/calculate`,
+            {
+                ...withAuth(),
+                method: 'POST',
+                headers: {
+                    ...withAuth().headers,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(deliveryData)
+            }
+        );
+        
+        return handleResponse(response);
+    } catch (error) {
+        console.error('Error calculating delivery:', error);
+        throw error;
+    }
+}
+
+/**
+ * Get available delivery methods for address and weight
+ * @param {string} address - Delivery address
+ * @param {number} weight - Order weight
+ * @returns {Promise<Array>} - Available delivery methods
+ */
+export async function getAvailableDeliveryMethods(address, weight) {
+    try {
+        const params = new URLSearchParams();
+        params.append('address', address);
+        params.append('weight', weight);
+        
+        const response = await fetch(
+            `${API_URL}/delivery/available?${params.toString()}`,
+            withAuth()
+        );
+        
+        return handleResponse(response);
+    } catch (error) {
+        console.error('Error fetching available delivery methods:', error);
+        throw error;
+    }
+}
+
+/**
+ * Update order status (admin function)
+ * @param {number} orderId - Order ID
+ * @param {Object} statusData - Status update data
+ * @returns {Promise<Object>} - Status update result
+ */
+export async function updateOrderStatus(orderId, statusData) {
+    try {
+        const response = await fetch(
+            `${API_URL}/admin/orders/${orderId}/status`,
+            {
+                ...withAuth(),
+                method: 'PUT',
+                headers: {
+                    ...withAuth().headers,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(statusData)
+            }
+        );
+        
+        return handleResponse(response);
+    } catch (error) {
+        console.error(`Error updating status for order ${orderId}:`, error);
         throw error;
     }
 }

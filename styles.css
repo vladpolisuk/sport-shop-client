@@ -67,6 +67,31 @@ header h1 {
 }
 
 /* Navigation */
+.nav-container {
+    position: relative;
+}
+
+/* Hamburger Menu */
+.hamburger-menu {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 30px;
+    height: 25px;
+    cursor: pointer;
+    z-index: 100;
+}
+
+.hamburger-menu span {
+    display: block;
+    height: 3px;
+    width: 100%;
+    background-color: #0066cc;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+/* Navigation */
 .nav-menu ul {
     display: flex;
     list-style: none;
@@ -91,6 +116,47 @@ header h1 {
 .nav-menu ul li a.active {
     background-color: #0066cc;
     color: white;
+}
+
+/* Responsive styles for hamburger menu */
+@media screen and (max-width: 768px) {
+    .hamburger-menu {
+        display: flex;
+    }
+
+    .nav-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: #fff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 0 0 5px 5px;
+        padding: 15px;
+        display: none;
+        z-index: 99;
+    }
+
+    .nav-menu.active {
+        display: block;
+    }
+
+    .nav-menu ul {
+        flex-direction: column;
+    }
+
+    .nav-menu ul li {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+
+    .nav-menu ul li:last-child {
+        margin-bottom: 0;
+    }
+
+    .user-welcome {
+        margin-bottom: 15px;
+    }
 }
 
 .logout-btn {
@@ -213,17 +279,20 @@ table tr:hover {
 .modal {
     display: none;
     position: fixed;
+    overflow: auto;
+    padding: 40px 0;
+    align-items: flex-start;
     z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
+    justify-content: center;
     background-color: rgba(0, 0, 0, 0.5);
 }
 
 .modal-content {
     background-color: #fff;
-    margin: 10% auto;
     padding: 0;
     width: 60%;
     max-width: 600px;
@@ -307,6 +376,100 @@ table tr:hover {
 .order-items h3 {
     margin-bottom: 15px;
     color: #444;
+}
+
+/* Payment and Delivery Methods */
+.payment-method-item,
+.delivery-method-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.payment-method-item:hover,
+.delivery-method-item:hover {
+    border-color: #0066cc;
+    background-color: #f0f7ff;
+}
+
+.payment-method-item.selected,
+.delivery-method-item.selected {
+    border-color: #0066cc;
+    background-color: #e6f0ff;
+    box-shadow: 0 0 0 1px #0066cc;
+}
+
+.method-icon {
+    width: 40px;
+    height: 40px;
+    margin-right: 15px;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.method-details {
+    flex: 1;
+}
+
+.method-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.method-description {
+    font-size: 13px;
+    color: #666;
+}
+
+.method-price {
+    font-weight: bold;
+    color: #0066cc;
+    white-space: nowrap;
+    margin-left: 10px;
+}
+
+/* Order Summary Information */
+.order-info-summary {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f8f8f8;
+    border-radius: 4px;
+    border-left: 3px solid #0066cc;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+    font-weight: bold;
+    color: #0066cc;
+}
+
+.calculate-delivery-btn {
+    margin-top: 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.calculate-delivery-btn:hover {
+    background-color: #e0e0e0;
 }
 
 .order-item {
@@ -1128,4 +1291,214 @@ table tr:hover {
 #current-username {
     font-weight: bold;
     color: #0066cc;
+}
+
+/* Order Details Modal */
+.order-details-container {
+    padding: 15px;
+}
+
+.order-details-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.order-details-section {
+    margin-bottom: 25px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+}
+
+.order-details-section h3 {
+    color: #0066cc;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.order-details-items-container {
+    background-color: white;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.order-details-items-header {
+    display: flex;
+    background-color: #f0f7ff;
+    padding: 12px 15px;
+    font-weight: bold;
+    color: #0066cc;
+    border-bottom: 1px solid #e6f0ff;
+}
+
+.order-details-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.order-details-item:last-child {
+    border-bottom: none;
+}
+
+.order-details-item.delivery-item {
+    background-color: #f8faff;
+    font-weight: 500;
+}
+
+.item-name {
+    flex: 3;
+}
+
+.item-quantity, .item-price {
+    flex: 1;
+    text-align: center;
+}
+
+.item-total {
+    flex: 1;
+    text-align: right;
+    font-weight: bold;
+}
+
+.order-details-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background-color: #f0f7ff;
+    font-weight: bold;
+    color: #0066cc;
+    font-size: 16px;
+}
+
+/* Payment and delivery info sections */
+.info-section {
+    background-color: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.info-section h4 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #333;
+    font-size: 16px;
+}
+
+.info-section p {
+    margin: 8px 0;
+    line-height: 1.4;
+}
+
+.payment-info-item, .delivery-info-item {
+    background-color: white;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    line-height: 1.6;
+}
+
+/* Order events list */
+.order-events-list {
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.order-event {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    position: relative;
+}
+
+.order-event:last-child {
+    border-bottom: none;
+}
+
+.order-event:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 4px;
+    background-color: #0066cc;
+}
+
+.event-timestamp {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.event-message {
+    font-weight: 500;
+}
+
+.event-status-change {
+    font-size: 13px;
+    color: #666;
+    margin-top: 5px;
+}
+
+/* Add styles for delivery and payment methods */
+.delivery-method,
+.payment-method {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.delivery-method:hover,
+.payment-method:hover {
+    background-color: #f0f0f0;
+}
+
+.delivery-method input,
+.payment-method input {
+    margin-right: 10px;
+}
+
+.delivery-info {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    border-left: 4px solid #4CAF50;
+}
+
+#delivery-details {
+    margin-top: 15px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+.order-delivery-info,
+.order-payment-info {
+    margin: 15px 0;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+#checkout-address {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
 } 

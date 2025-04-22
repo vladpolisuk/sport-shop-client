@@ -10,6 +10,7 @@ import {
 
 import {
     openCustomerModal,
+    openOrderDetailsModal,
     openOrderModal,
     openProductModal
 } from './ui.js';
@@ -246,40 +247,21 @@ async function loadOrders() {
         table.id = 'orders-table';
         tableContainer.appendChild(table);
         
-        // Создадим заголовок таблицы с добавленными столбцами
+        // Создадим заголовок таблицы
         const thead = document.createElement('thead');
         thead.innerHTML = `
             <tr>
                 <th>ID</th>
-                <th>ID клиента</th>
                 <th>Клиент</th>
-                <th>Email</th>
-                <th>Телефон</th>
                 <th>Сумма</th>
+                <th>Доставка</th>
+                <th>Оплата</th>
                 <th>Статус</th>
                 <th>Дата создания</th>
                 <th>Действия</th>
             </tr>
         `;
         table.appendChild(thead);
-    } else {
-        // Обновляем существующий заголовок таблицы
-        const thead = table.querySelector('thead');
-        if (thead) {
-            thead.innerHTML = `
-                <tr>
-                    <th>ID</th>
-                    <th>ID клиента</th>
-                    <th>Клиент</th>
-                    <th>Email</th>
-                    <th>Телефон</th>
-                    <th>Сумма</th>
-                    <th>Статус</th>
-                    <th>Дата создания</th>
-                    <th>Действия</th>
-                </tr>
-            `;
-        }
     }
 
     // Найдем или создадим тело таблицы
@@ -290,7 +272,7 @@ async function loadOrders() {
     }
 
     // Показываем индикатор загрузки
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">Загрузка...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Загрузка...</td></tr>';
     
     // Загружаем данные
     return fetchOrders()
@@ -298,13 +280,23 @@ async function loadOrders() {
             tbody.innerHTML = '';
             
             if (orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">Нет заказов</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Нет заказов</td></tr>';
                 return;
             }
             
             orders.forEach(order => {
-                // Format date for better readability
-                const orderDate = new Date(order.createdAt).toLocaleString('ru-RU', {
+                // Format delivery and payment information
+                const deliveryInfo = order.delivery ? 
+                    `${order.delivery.methodName}<br>${translateStatus(order.delivery.status)}<br>Стоимость: ${order.delivery.cost.toFixed(2)} руб.` :
+                    'Не указано';
+                
+                const paymentInfo = order.payment ?
+                    `${order.payment.methodName}<br>${translatePaymentStatus(order.payment.status)}` :
+                    'Не указано';
+                
+                // Format date
+                const createdDate = order.createdAt ? new Date(order.createdAt) : new Date();
+                const formattedDate = createdDate.toLocaleString('ru-RU', {
                     year: 'numeric',
                     month: '2-digit',
                     day: '2-digit',
@@ -312,29 +304,48 @@ async function loadOrders() {
                     minute: '2-digit'
                 });
                 
+                // Format total price
+                const totalPrice = order.totalPrice ? order.totalPrice.toFixed(2) : 
+                    (order.itemsPrice && order.deliveryCost ? 
+                        (order.itemsPrice + order.deliveryCost).toFixed(2) : '0.00');
+                
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${order.id}</td>
-                    <td>${order.customerId || 'Не указан'}</td>
-                    <td>${order.customerName || 'Не указан'}</td>
-                    <td>${order.customerEmail || 'Не указан'}</td>
-                    <td>${order.customerPhone || 'Не указан'}</td>
-                    <td>${order.totalPrice.toFixed(2)} руб.</td>
+                    <td>${order.customerName || 'Неизвестно'}</td>
+                    <td>${totalPrice} руб.</td>
+                    <td>${deliveryInfo}</td>
+                    <td>${paymentInfo}</td>
                     <td>${formatOrderStatus(order.status)}</td>
-                    <td>${orderDate}</td>
+                    <td>${formattedDate}</td>
                     <td class="actions">
-                        <button class="btn edit-order" data-id="${order.id}">Изменить</button>
+                        <button class="btn view-order" data-id="${order.id}">Детали</button>
+                        <button class="btn edit-order" data-id="${order.id}">Статус</button>
                         <button class="btn danger delete-order" data-id="${order.id}">Удалить</button>
                     </td>
                 `;
                 tbody.appendChild(row);
+                
+                // Store the full order object for use in modals
+                row.dataset.order = JSON.stringify(order);
+            });
+            
+            // Add event listeners for view, edit and delete buttons
+            document.querySelectorAll('.view-order').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const orderId = btn.getAttribute('data-id');
+                    const row = btn.closest('tr');
+                    const orderData = JSON.parse(row.dataset.order);
+                    openOrderDetailsModal(orderData);
+                });
             });
             
             document.querySelectorAll('.edit-order').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const orderId = btn.getAttribute('data-id');
-                    const order = orders.find(o => o.id == orderId);
-                    openOrderModal(order);
+                    const row = btn.closest('tr');
+                    const orderData = JSON.parse(row.dataset.order);
+                    openOrderModal(orderData);
                 });
             });
             
@@ -351,7 +362,7 @@ async function loadOrders() {
         })
         .catch(error => {
             console.error('Error loading orders:', error);
-            tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: red;">Ошибка загрузки: ${error.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: red;">Ошибка загрузки: ${error.message}</td></tr>`;
             return Promise.reject(error);
         });
 }
@@ -372,9 +383,31 @@ function formatOrderStatus(status) {
     }
 }
 
+/**
+ * Translate status code to human-readable text
+ * @param {string} status - Status code
+ * @returns {string} - Translated status
+ */
+function translateStatus(status) {
+    const statusMap = {
+        'CREATED': 'Создан',
+        'PROCESSING': 'В обработке',
+        'SHIPPED': 'Отправлен',
+        'DELIVERED': 'Доставлен',
+        'COMPLETED': 'Завершен',
+        'CANCELLED': 'Отменен',
+        'PENDING': 'В ожидании',
+        'PREPARING': 'Подготовка',
+        'IN_WORK': 'В работе',
+        'PAID': 'Оплачен',
+        'FAILED': 'Ошибка'
+    };
+    
+    return statusMap[status] || status;
+}
+
 // Export data loading functions
 export {
-    loadCustomers,
-    loadOrders, loadProducts
+    loadCustomers, loadOrders, loadProducts
 };
 

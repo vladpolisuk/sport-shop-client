@@ -10,6 +10,7 @@ import {
 
 // Import UI and data loading functions
 import { loadCustomers, loadOrders, loadProducts } from './data-loaders.js';
+import { getOrderPaymentDeliveryData } from './payment-delivery.js';
 import { closeAllModals } from './ui.js';
 
 // Form submit handlers
@@ -120,10 +121,35 @@ async function handleOrderSubmit(e) {
                 return;
             }
             
+            // Get payment and delivery data
+            const paymentDeliveryData = getOrderPaymentDeliveryData();
+            
+            // Validate payment and delivery data
+            if (!paymentDeliveryData.paymentMethodId) {
+                alert('Пожалуйста, выберите способ оплаты');
+                return;
+            }
+            
+            if (!paymentDeliveryData.deliveryMethodId) {
+                alert('Пожалуйста, выберите способ доставки');
+                return;
+            }
+            
+            if (paymentDeliveryData.deliveryMethodId !== 3 && !paymentDeliveryData.deliveryAddress) {
+                // If not self-pickup, address is required
+                alert('Пожалуйста, введите адрес доставки');
+                return;
+            }
+            
             const order = {
                 customer: { id: customerId },
-                orderItems: orderItems
+                orderItems: orderItems,
+                deliveryMethodId: paymentDeliveryData.deliveryMethodId,
+                deliveryAddress: paymentDeliveryData.deliveryAddress,
+                paymentMethodId: paymentDeliveryData.paymentMethodId
             };
+            
+            console.log('Создание нового заказа:', order);
             
             // Create new order
             await createOrder(order);

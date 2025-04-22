@@ -80,6 +80,32 @@
                         <input type="email" id="checkout-email" required>
                     </div>
                     
+                    <div class="form-group">
+                        <h3>Способ доставки</h3>
+                        <div id="delivery-methods-container">
+                            <!-- Delivery methods will be loaded here -->
+                            <p class="loading-message">Загрузка способов доставки...</p>
+                        </div>
+                        
+                        <div id="delivery-details" style="display: none;">
+                            <label for="checkout-address">Адрес доставки:</label>
+                            <input type="text" id="checkout-address" required>
+                            
+                            <div class="delivery-info">
+                                <p>Стоимость доставки: <span id="delivery-cost">0</span> руб.</p>
+                                <p>Срок доставки: <span id="delivery-time">0</span> дней</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <h3>Способ оплаты</h3>
+                        <div id="payment-methods-container">
+                            <!-- Payment methods will be loaded here -->
+                            <p class="loading-message">Загрузка способов оплаты...</p>
+                        </div>
+                    </div>
+                    
                     <div class="order-summary">
                         <h3>Состав заказа:</h3>
                         <div id="order-items-summary">

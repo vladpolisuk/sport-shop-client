@@ -27,6 +27,8 @@ import {
     loadProducts
 } from './data-loaders.js';
 
+// Import payment and delivery functions
+
 // Function to hide preloader when page is loaded
 function hidePreloader() {
     document.body.classList.add('loaded');
@@ -68,6 +70,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log(`User roles: ${authStatus.user.roles.join(', ')}`);
     }
 
+    // Set up hamburger menu
+    const hamburgerMenu = document.getElementById('hamburger-menu');
+    const navMenu = document.getElementById('admin-nav');
+    
+    if (hamburgerMenu && navMenu) {
+        hamburgerMenu.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+        });
+        
+        // Close the menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!hamburgerMenu.contains(e.target) && !navMenu.contains(e.target)) {
+                navMenu.classList.remove('active');
+            }
+        });
+    }
+
     // Set up navigation
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
@@ -81,6 +100,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             if (targetPage) {
                 showPage(targetPage);
+                // Close mobile menu after navigation
+                navMenu.classList.remove('active');
             }
         });
     });

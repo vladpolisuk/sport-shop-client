@@ -4,6 +4,9 @@ const customerModal = document.getElementById('customer-modal');
 const orderModal = document.getElementById('order-modal');
 const orderDetailsModal = document.getElementById('order-details-modal');
 
+// Import payment and delivery functions
+import { initPaymentAndDelivery } from './payment-delivery.js';
+
 // Modal handlers
 function closeAllModals() {
     if (productModal) productModal.style.display = 'none';
@@ -36,7 +39,7 @@ function openProductModal(product = null) {
         document.getElementById('product-id').value = '';
     }
     
-    productModal.style.display = 'block';
+    productModal.style.display = 'flex';
 }
 
 function openCustomerModal(customer = null) {
@@ -56,7 +59,7 @@ function openCustomerModal(customer = null) {
         document.getElementById('customer-id').value = '';
     }
     
-    customerModal.style.display = 'block';
+    customerModal.style.display = 'flex';
 }
 
 function openOrderModal(order = null) {
@@ -100,6 +103,17 @@ function openOrderModal(order = null) {
         const addItemButton = document.getElementById('add-order-item');
         const statusGroup = document.getElementById('status-group');
         const statusSelect = document.getElementById('order-status');
+        
+        // Payment and delivery sections - hide when editing
+        const paymentMethodGroup = document.getElementById('payment-method-group');
+        const deliveryMethodGroup = document.getElementById('delivery-method-group');
+        const deliveryAddressGroup = document.getElementById('delivery-address-group');
+        const deliveryInfo = document.getElementById('delivery-info');
+        
+        if (paymentMethodGroup) paymentMethodGroup.style.display = 'none';
+        if (deliveryMethodGroup) deliveryMethodGroup.style.display = 'none';
+        if (deliveryAddressGroup) deliveryAddressGroup.style.display = 'none';
+        if (deliveryInfo) deliveryInfo.style.display = 'none';
         
         // Set modal title
         if (title) title.textContent = 'Обновить статус заказа';
@@ -200,193 +214,392 @@ function openOrderModal(order = null) {
             totalElement.innerHTML = `<strong>Итого: ${total.toFixed(2)} руб.</strong>`;
             orderItemsSummary.appendChild(totalElement);
             
+            // Add the summary to the order items container
             container.appendChild(orderItemsSummary);
-        } else {
-            container.innerHTML = '<p>Нет товаров в заказе</p>';
+        }
+        
+        // Display delivery and payment information
+        if (order.delivery || order.payment) {
+            const orderDetailsSummary = document.createElement('div');
+            orderDetailsSummary.className = 'order-items-summary';
+            orderDetailsSummary.innerHTML = '<h3>Информация о доставке и оплате</h3>';
+            
+            if (order.delivery) {
+                const deliveryInfo = document.createElement('div');
+                deliveryInfo.className = 'delivery-info-item';
+                deliveryInfo.innerHTML = `
+                    <strong>Доставка:</strong> ${order.delivery.methodName}<br>
+                    <strong>Адрес:</strong> ${order.delivery.address || 'Самовывоз'}<br>
+                    <strong>Стоимость доставки:</strong> ${order.delivery.cost.toFixed(2)} руб.<br>
+                    <strong>Статус доставки:</strong> ${translateStatus(order.delivery.status)}<br>
+                    <strong>Ожидаемая дата доставки:</strong> ${formatDate(order.delivery.estimatedDeliveryDate)}<br>
+                    ${order.delivery.trackingNumber ? `<strong>Номер отслеживания:</strong> ${order.delivery.trackingNumber}` : ''}
+                `;
+                orderDetailsSummary.appendChild(deliveryInfo);
+            }
+            
+            if (order.payment) {
+                const paymentInfo = document.createElement('div');
+                paymentInfo.className = 'payment-info-item';
+                paymentInfo.innerHTML = `
+                    <strong>Способ оплаты:</strong> ${order.payment.methodName}<br>
+                    <strong>Статус оплаты:</strong> ${translatePaymentStatus(order.payment.status)}<br>
+                    ${order.payment.transactionId ? `<strong>ID транзакции:</strong> ${order.payment.transactionId}<br>` : ''}
+                    ${order.payment.paidAt ? `<strong>Дата оплаты:</strong> ${formatDate(order.payment.paidAt)}` : ''}
+                `;
+                orderDetailsSummary.appendChild(paymentInfo);
+            }
+            
+            container.appendChild(orderDetailsSummary);
         }
     } else {
-        // This is a new order - show full UI
+        // Creating new order - show all form fields
         const title = document.getElementById('order-modal-title');
         const customerInfoGroup = document.getElementById('customer-info-group');
         const orderItemsGroup = document.getElementById('order-items-group');
-        const addItemButton = document.getElementById('add-order-item');
         const statusGroup = document.getElementById('status-group');
         
+        // Payment and delivery sections - show when creating new order
+        const paymentMethodGroup = document.getElementById('payment-method-group');
+        const deliveryMethodGroup = document.getElementById('delivery-method-group');
+        const deliveryAddressGroup = document.getElementById('delivery-address-group');
+        
+        if (paymentMethodGroup) paymentMethodGroup.style.display = 'block';
+        if (deliveryMethodGroup) deliveryMethodGroup.style.display = 'block';
+        if (deliveryAddressGroup) deliveryAddressGroup.style.display = 'block';
+        
+        // Set modal title
         if (title) title.textContent = 'Создать заказ';
-        document.getElementById('order-id').value = '';
         
-        // Reset and enable customer selection
-        customerSelect.disabled = false;
-        customerSelect.innerHTML = '<option value="">Выберите клиента</option>';
-        
-        // Populate customer dropdown for new orders
-        fetchCustomers().then(customers => {
-            customers.forEach(customer => {
-                const option = document.createElement('option');
-                option.value = customer.id;
-                option.textContent = `${customer.name} (${customer.phone})`;
-                customerSelect.appendChild(option);
-            });
-        });
-        
-        // Show order items UI for new orders
-        if (orderItemsGroup) {
-            orderItemsGroup.style.display = 'block';
-        }
-        
-        if (addItemButton) {
-            addItemButton.style.display = 'block';
-        }
-        
-        // Hide status for new orders
+        // Hide status selection for new orders
         if (statusGroup) {
             statusGroup.style.display = 'none';
         }
         
-        // Add one empty item row by default
+        // Show and enable customer selection
+        if (customerInfoGroup) {
+            customerInfoGroup.style.display = 'block';
+            customerSelect.disabled = false;
+        }
+        
+        // Show order items UI
+        if (orderItemsGroup) {
+            orderItemsGroup.style.display = 'block';
+        }
+        
+        // Add initial empty order item row
         addOrderItemRow();
+        
+        // Initialize payment and delivery methods
+        initPaymentAndDelivery();
     }
     
-    orderModal.style.display = 'block';
+    orderModal.style.display = 'flex';
 }
 
 function openOrderDetailsModal(order) {
-    const detailsContainer = document.getElementById('order-details');
-    
-    // Format date
-    const orderDate = new Date(order.createdAt).toLocaleString('ru-RU', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-    
-    // Calculate total price
-    const totalPrice = order.totalPrice.toFixed(2);
-    
-    // Format status for display
-    let formattedStatus = order.status;
-    switch (order.status) {
-        case 'IN_WORK':
-            formattedStatus = 'В работе';
-            break;
-        case 'COMPLETED':
-            formattedStatus = 'Завершён';
-            break;
+    // Get the modal
+    const detailsModal = document.getElementById('order-details-modal');
+    if (!detailsModal) {
+        console.error('Order details modal not found');
+        return;
     }
     
-    // Build order details HTML
-    let detailsHTML = `
-        <div class="order-details-info">
-            <p><strong>Номер заказа:</strong> ${order.id}</p>
-            <h3>Информация о клиенте:</h3>
-            <div class="customer-details">
-                <p><strong>ID клиента:</strong> ${order.customerId || 'Не указан'}</p>
-                <p><strong>Имя:</strong> ${order.customerName || 'Не указан'}</p>
-                <p><strong>Email:</strong> ${order.customerEmail || 'Не указан'}</p>
-                <p><strong>Телефон:</strong> ${order.customerPhone || 'Не указан'}</p>
-            </div>
-            <p><strong>Статус:</strong> ${formattedStatus}</p>
-            <p><strong>Дата:</strong> ${orderDate}</p>
-        </div>
-        <div class="order-details-items">
-            <h3>Товары в заказе:</h3>
-    `;
+    // Get modal content elements
+    const orderId = document.getElementById('order-details-id');
+    const orderDate = document.getElementById('order-details-date');
+    const orderStatus = document.getElementById('order-details-status');
+    const customerInfo = document.getElementById('order-details-customer');
+    const itemsContainer = document.getElementById('order-details-items');
+    const totalAmount = document.getElementById('order-details-total');
     
-    order.orderItems.forEach(item => {
-        // Get the price and calculate total
-        const itemPrice = item.price || 0;
-        const itemQuantity = item.quantity || 1;
-        const itemTotal = (itemPrice * itemQuantity).toFixed(2);
+    // Set order details
+    if (orderId) orderId.textContent = order.id;
+    if (orderDate) orderDate.textContent = formatDate(order.createdAt);
+    if (orderStatus) orderStatus.textContent = translateStatus(order.status);
+    
+    // Set customer information
+    if (customerInfo) {
+        customerInfo.innerHTML = '';
         
-        detailsHTML += `
-            <div class="order-details-item">
-                <div>
-                    <strong>${item.productName || 'Товар'}</strong>
-                </div>
-                <div>
-                    <div>${itemQuantity} x ${itemPrice.toFixed(2)} руб.</div>
-                    <div><strong>${itemTotal} руб.</strong></div>
-                </div>
-            </div>
-        `;
-    });
-    
-    detailsHTML += `
-        <div class="order-total">
-            Итого: ${totalPrice} руб.
-        </div>
-    `;
-    
-    detailsContainer.innerHTML = detailsHTML;
-    const orderDetailsModal = document.getElementById('order-details-modal');
-    if (orderDetailsModal) {
-        orderDetailsModal.style.display = 'block';
-    } else {
-        console.error('Order details modal element not found');
+        if (order.customer) {
+            // Old format with nested customer object
+            customerInfo.innerHTML = `
+                <p><strong>Имя:</strong> ${order.customer.name || 'Н/Д'}</p>
+                <p><strong>Телефон:</strong> ${order.customer.phone || 'Н/Д'}</p>
+                <p><strong>Email:</strong> ${order.customer.email || 'Н/Д'}</p>
+            `;
+        } else if (order.customerName || order.customerEmail || order.customerPhone) {
+            // New format with customer info at root level
+            customerInfo.innerHTML = `
+                <p><strong>Имя:</strong> ${order.customerName || 'Н/Д'}</p>
+                <p><strong>Телефон:</strong> ${order.customerPhone || 'Н/Д'}</p>
+                <p><strong>Email:</strong> ${order.customerEmail || 'Н/Д'}</p>
+            `;
+        } else {
+            customerInfo.innerHTML = '<p>Информация о клиенте недоступна</p>';
+        }
     }
+    
+    // Set order items
+    if (itemsContainer) {
+        itemsContainer.innerHTML = '';
+        
+        if (order.orderItems && order.orderItems.length > 0) {
+            let subtotal = 0;
+            
+            order.orderItems.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'order-details-item';
+                
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+                
+                itemElement.innerHTML = `
+                    <span class="item-name">${item.productName || 'Товар'}</span>
+                    <span class="item-quantity">${item.quantity} шт.</span>
+                    <span class="item-price">${item.price.toFixed(2)} руб.</span>
+                    <span class="item-total">${itemTotal.toFixed(2)} руб.</span>
+                `;
+                
+                itemsContainer.appendChild(itemElement);
+            });
+            
+            // Add delivery info if available in either format
+            if (order.delivery && order.delivery.cost) {
+                const deliveryElement = document.createElement('div');
+                deliveryElement.className = 'order-details-item delivery-item';
+                
+                deliveryElement.innerHTML = `
+                    <span class="item-name">Доставка (${order.delivery.methodName || 'Стандартная'})</span>
+                    <span class="item-quantity"></span>
+                    <span class="item-price"></span>
+                    <span class="item-total">${order.delivery.cost.toFixed(2)} руб.</span>
+                `;
+                
+                itemsContainer.appendChild(deliveryElement);
+                
+                // Add delivery to subtotal
+                subtotal += order.delivery.cost;
+            } else if (order.deliveryMethod) {
+                // Show delivery method if we have it, even without the cost
+                const deliveryElement = document.createElement('div');
+                deliveryElement.className = 'order-details-item delivery-item';
+                
+                deliveryElement.innerHTML = `
+                    <span class="item-name">Доставка (${order.deliveryMethod})</span>
+                    <span class="item-quantity"></span>
+                    <span class="item-price"></span>
+                    <span class="item-total">включена</span>
+                `;
+                
+                itemsContainer.appendChild(deliveryElement);
+                
+                // Note: We don't add to subtotal since we don't have specific cost
+                // The server's totalPrice should already include delivery
+            }
+            
+            // Set total amount - prefer the server's total price which should include delivery
+            if (totalAmount) {
+                totalAmount.textContent = `${(order.totalPrice || subtotal).toFixed(2)} руб.`;
+            }
+        } else {
+            itemsContainer.innerHTML = '<p>Нет товаров в заказе</p>';
+            
+            if (totalAmount) {
+                totalAmount.textContent = '0.00 руб.';
+            }
+        }
+    }
+    
+    // Add payment and delivery information
+    const paymentDeliveryInfo = document.getElementById('order-details-payment-delivery');
+    if (paymentDeliveryInfo) {
+        paymentDeliveryInfo.innerHTML = '<h3>Информация о доставке и оплате</h3>';
+        
+        // Delivery information
+        const deliveryInfo = document.createElement('div');
+        deliveryInfo.className = 'info-section';
+        
+        if (order.deliveryMethod || order.deliveryAddress) {
+            deliveryInfo.innerHTML = `
+                <h4>Информация о доставке</h4>
+                <p><strong>Способ доставки:</strong> ${order.deliveryMethod || 'Не указан'}</p>
+                <p><strong>Адрес:</strong> ${order.deliveryAddress || 'Не указан'}</p>
+            `;
+        } else if (order.delivery) {
+            // Backward compatibility with old format
+            deliveryInfo.innerHTML = `
+                <h4>Информация о доставке</h4>
+                <p><strong>Способ доставки:</strong> ${order.delivery.methodName || 'Не указан'}</p>
+                <p><strong>Адрес:</strong> ${order.delivery.address || 'Самовывоз'}</p>
+                ${order.delivery.status ? `<p><strong>Статус:</strong> ${translateStatus(order.delivery.status)}</p>` : ''}
+                ${order.delivery.estimatedDeliveryDate ? `<p><strong>Ожидаемая дата:</strong> ${formatDate(order.delivery.estimatedDeliveryDate)}</p>` : ''}
+                ${order.delivery.trackingNumber ? `<p><strong>Номер отслеживания:</strong> ${order.delivery.trackingNumber}</p>` : ''}
+            `;
+        } else {
+            deliveryInfo.innerHTML = `
+                <h4>Информация о доставке</h4>
+                <p>Данные о доставке отсутствуют</p>
+            `;
+        }
+        paymentDeliveryInfo.appendChild(deliveryInfo);
+        
+        // Payment information
+        const paymentInfo = document.createElement('div');
+        paymentInfo.className = 'info-section';
+        
+        if (order.paymentMethod) {
+            paymentInfo.innerHTML = `
+                <h4>Информация об оплате</h4>
+                <p><strong>Способ оплаты:</strong> ${order.paymentMethod || 'Не указан'}</p>
+            `;
+        } else if (order.payment) {
+            // Backward compatibility with old format
+            paymentInfo.innerHTML = `
+                <h4>Информация об оплате</h4>
+                <p><strong>Способ оплаты:</strong> ${order.payment.methodName || 'Не указан'}</p>
+                ${order.payment.status ? `<p><strong>Статус:</strong> ${translatePaymentStatus(order.payment.status)}</p>` : ''}
+                ${order.payment.transactionId ? `<p><strong>ID транзакции:</strong> ${order.payment.transactionId}</p>` : ''}
+                ${order.payment.paidAt ? `<p><strong>Дата оплаты:</strong> ${formatDate(order.payment.paidAt)}</p>` : ''}
+            `;
+        } else {
+            paymentInfo.innerHTML = `
+                <h4>Информация об оплате</h4>
+                <p>Данные об оплате отсутствуют</p>
+            `;
+        }
+        paymentDeliveryInfo.appendChild(paymentInfo);
+    }
+    
+    // Display modal
+    detailsModal.style.display = 'flex';
 }
 
-// Add an order item row to the form
+// Helper functions for date and status formatting
+function formatDate(dateString) {
+    if (!dateString) return 'Н/Д';
+    
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('ru-RU', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    }).format(date);
+}
+
+function translateStatus(status) {
+    const statusMap = {
+        'CREATED': 'Создан',
+        'PROCESSING': 'В обработке',
+        'SHIPPED': 'Отправлен',
+        'DELIVERED': 'Доставлен',
+        'COMPLETED': 'Завершен',
+        'CANCELLED': 'Отменен',
+        'PENDING': 'В ожидании',
+        'PREPARING': 'Подготовка'
+    };
+    
+    return statusMap[status] || status;
+}
+
+function translatePaymentStatus(status) {
+    const statusMap = {
+        'PENDING': 'Ожидает оплаты',
+        'PAID': 'Оплачен',
+        'FAILED': 'Ошибка оплаты',
+        'REFUNDED': 'Возвращен'
+    };
+    
+    return statusMap[status] || status;
+}
+
 function addOrderItemRow(item = null) {
     const container = document.getElementById('order-items-container');
-    const orderItem = document.createElement('div');
-    orderItem.className = 'order-item';
+    if (!container) {
+        console.error('Order items container not found');
+        return;
+    }
     
-    // Create product dropdown
+    // Create item row
+    const itemRow = document.createElement('div');
+    itemRow.className = 'order-item';
+    
+    // Create product selection element
     const productSelect = document.createElement('select');
     productSelect.className = 'product-select';
-    productSelect.required = true;
+    productSelect.innerHTML = '<option value="">Выберите товар</option>';
     
     // Create quantity input
     const quantityInput = document.createElement('input');
-    quantityInput.type = 'number';
     quantityInput.className = 'quantity-input';
-    quantityInput.min = 1;
-    quantityInput.value = item ? item.quantity : 1;
-    quantityInput.required = true;
+    quantityInput.type = 'number';
+    quantityInput.min = '1';
+    quantityInput.value = item ? item.quantity : '1';
     
     // Create remove button
-    const removeBtn = document.createElement('button');
-    removeBtn.type = 'button';
-    removeBtn.className = 'remove-item';
-    removeBtn.textContent = 'Удалить';
-    removeBtn.addEventListener('click', () => {
-        container.removeChild(orderItem);
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.className = 'remove-item';
+    removeButton.textContent = 'Удалить';
+    removeButton.addEventListener('click', () => {
+        itemRow.remove();
     });
     
-    // Load products for dropdown
-    fetchProducts().then(products => {
+    // Add elements to the row
+    itemRow.appendChild(productSelect);
+    itemRow.appendChild(quantityInput);
+    itemRow.appendChild(removeButton);
+    
+    // Add the row to the container
+    container.appendChild(itemRow);
+    
+    // Populate products dropdown
+    loadProductsForSelect(productSelect, item ? item.productId : null);
+}
+
+// Helper function to load products for select element
+async function loadProductsForSelect(selectElement, selectedProductId = null) {
+    try {
+        // Import required function
+        const { fetchProducts } = await import('./api.js');
+        
+        // Clear all options except first one
+        const placeholder = selectElement.querySelector('option:first-child');
+        selectElement.innerHTML = '';
+        selectElement.appendChild(placeholder);
+        
+        // Fetch products
+        const response = await fetchProducts();
+        const products = response.data || [];
+        
+        // Add product options
         products.forEach(product => {
             const option = document.createElement('option');
             option.value = product.id;
-            option.textContent = `${product.name} - ${product.price} руб.`;
-            productSelect.appendChild(option);
+            option.textContent = `${product.name} - ${product.price.toFixed(2)} руб.`;
+            
+            if (selectedProductId && product.id == selectedProductId) {
+                option.selected = true;
+            }
+            
+            selectElement.appendChild(option);
         });
-        
-        if (item) {
-            productSelect.value = item.product.id;
-        }
-    });
-    
-    // Add elements to the order item
-    orderItem.appendChild(productSelect);
-    orderItem.appendChild(quantityInput);
-    orderItem.appendChild(removeBtn);
-    
-    // Add the item to the container
-    container.appendChild(orderItem);
+    } catch (error) {
+        console.error('Error loading products for select:', error);
+        alert('Ошибка при загрузке товаров');
+    }
 }
 
-// Import API functions
-import {
-    fetchCustomers,
-    fetchProducts
-} from './api.js';
-
-// Export UI functions
+// Export functions to be used in other modules
 export {
-    addOrderItemRow, closeAllModals, openCustomerModal, openOrderDetailsModal, openOrderModal, openProductModal
+    addOrderItemRow,
+    closeAllModals,
+    openCustomerModal,
+    openOrderDetailsModal,
+    openOrderModal,
+    openProductModal
 };
 
